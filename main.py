@@ -4,6 +4,7 @@ import tensorflow as tf
 import numpy as np
 from PIL import Image
 import io, base64, cv2
+import os
 from gradcam import get_prediction, make_gradcam_heatmap, overlay_heatmap
 
 app = FastAPI(title="Skin Classifier API")
@@ -15,9 +16,13 @@ app.add_middleware(
     allow_headers  = ["*"],
 )
 
-print("Loading model...")
-model = tf.keras.models.load_model("models/final_model.keras")
-print("Model loaded.")
+if os.environ.get("TESTING") != "1":
+    print("Loading model...")
+    model = tf.keras.models.load_model("models/final_model.keras")
+    print("Model loaded.")
+else:
+    model = None
+    print("Skipping model load in test mode.")
 
 ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
 

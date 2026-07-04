@@ -1,12 +1,12 @@
+import os
+os.environ["TESTING"] = "1"
+
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock
 import numpy as np
 
-# Mock the model loading so tests don't need the actual keras file
-with patch("main.tf.keras.models.load_model") as mock_load:
-    mock_load.return_value = MagicMock()
-    from main import app
+from main import app
 
 client = TestClient(app)
 
@@ -19,7 +19,7 @@ def test_root():
 
 def test_predict_no_file():
     response = client.post("/predict")
-    assert response.status_code == 422   # missing required field
+    assert response.status_code == 422
 
 def test_predict_wrong_file_type():
     response = client.post(
@@ -29,9 +29,9 @@ def test_predict_wrong_file_type():
     assert response.status_code == 400
 
 def test_predict_valid_image():
-    # Create a tiny valid JPEG in memory
     from PIL import Image
     import io
+
     img = Image.new("RGB", (100, 100), color=(128, 64, 32))
     buf = io.BytesIO()
     img.save(buf, format="JPEG")
