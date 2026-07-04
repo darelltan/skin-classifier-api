@@ -1,6 +1,6 @@
 # Skin Condition Classifier — Backend API
 
-A FastAPI backend serving a CNN-based skin lesion classifier with Grad-CAM interpretability visualisation. Built as a portfolio project for SIT ICT (Software Engineering) application.
+A FastAPI backend serving a CNN-based skin lesion classifier with Grad-CAM interpretability visualisation. Built as a portfolio project.
 
 ![CI Status](https://github.com/darelltan/skin-classifier-api/actions/workflows/test.yml/badge.svg)
 
