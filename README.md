@@ -1,6 +1,8 @@
 # Skin Condition Classifier — Backend API
 
-A FastAPI backend serving a CNN-based skin lesion classifier with Grad-CAM interpretability visualisation. Built as a portfolio project.
+A FastAPI backend for classifying skin lesions using an EfficientNetB0 CNN with Grad-CAM visualisations for model interpretability.
+
+Built to explore deep learning, medical image classification, and production deployment using FastAPI, Docker, and GitHub Actions.
 
 ![CI Status](https://github.com/darelltan/skin-classifier-api/actions/workflows/test.yml/badge.svg)
 
@@ -8,6 +10,46 @@ A FastAPI backend serving a CNN-based skin lesion classifier with Grad-CAM inter
 - **Full app:** https://skin-classifier-ui.vercel.app
 - **Gradio demo:** https://huggingface.co/spaces/renomaaaa/skin-classifier
 - **API docs:** https://renomaaaa-skin-classifier-api.hf.space/docs
+
+## Features
+- Four-class skin lesion classification using EfficientNetB0
+- Confidence scores for all predicted classes
+- Grad-CAM heatmap generation
+- REST API built with FastAPI
+- Interactive Swagger documentation
+- Docker deployment on Hugging Face Spaces
+- Automated testing with pytest
+- Continuous Integration using GitHub Actions
+
+## Architecture
+
+```text
+                Client
+                   │
+                   ▼
+           FastAPI Backend
+                   │
+                   ▼
+      Image Preprocessing
+                   │
+                   ▼
+      EfficientNetB0 Model
+                   │
+        ┌──────────┴──────────┐
+        ▼                     ▼
+ Predicted Class      Confidence Scores
+        │
+        ▼
+ Grad-CAM Heatmap
+```
+
+## Tech stack
+- Python 3.11
+- TensorFlow / Keras (EfficientNetB0)
+- FastAPI
+- OpenCV (Grad-CAM overlay)
+- Docker (Hugging Face deployment)
+- pytest + GitHub Actions (CI pipeline)
 
 ## Results
 
@@ -19,7 +61,9 @@ A FastAPI backend serving a CNN-based skin lesion classifier with Grad-CAM inter
 | Melanocytic Nevus | 0.70 | 0.59 | 0.64 |
 | **Overall** | **0.63** | **0.63** | **0.62** |
 
-Test accuracy: **62.7%** (vs 25% random baseline on 4-class problem)
+Test accuracy: **62.7%** (vs **25%** random baseline on a four-class classification task).
+
+Since this is a medical image classification problem, precision, recall, and F1-score provide a better measure of performance than overall accuracy alone.
 
 ## Confusion matrix
 ![Confusion matrix](confusion_matrix.png)
@@ -35,7 +79,6 @@ Test accuracy: **62.7%** (vs 25% random baseline on 4-class problem)
 **Two-phase training** — I trained the model in two stages.
 Phase 1: I froze the pretrained EfficientNetB0 layers and trained only the final classification head using a learning rate of 1e-3. This allowed the new classifier to learn the skin lesion classes without changing the pretrained features.
 Phase 2: After the classifier had stabilised, I unfroze the last 30 layers of EfficientNetB0 and fine-tuned them with a much smaller learning rate (1e-5). This helps the model adapt to dermoscopic images while reducing the risk of overwriting the useful features learned during pretraining.
-Class Balancing
 
 **Class balancing** — The original ISIC 2019 dataset is highly imbalanced. For example, the nevus class contains over 12,000 images, while classes like basal cell carcinoma have only around 3,000. To reduce this imbalance, I limited every class to 1,500 images. Although this meant using fewer total images, it encouraged the model to learn each class more evenly instead of favouring the majority class.
 
@@ -45,8 +88,7 @@ Class Balancing
 **Melanoma recall (0.50)** — One of the biggest challenges in this project is detecting melanoma. The model achieved a recall of 0.50, meaning it successfully identified about half of the melanoma cases in the test set. This is the weakest class in the model, but it is also the most important clinically because missing a melanoma (a false negative) can have serious consequences. One reason for this lower performance is that melanoma often shares visual characteristics with benign lesions such as keratosis, making them difficult to distinguish, especially with a relatively small training dataset.
 
 ## Dataset
-
-ISIC 2019 Challenge dataset (publicly available). 4 classes, 1,500 images per class after balancing. 70/15/15 train/val/test split.
+The model was trained using the publicly available ISIC 2019 Challenge dataset. To reduce class imbalance, each class was capped at 1,500 images before applying a 70/15/15 train/validation/test split.
 
 | Class | ISIC label | Raw count | After balancing |
 |-------|-----------|-----------|-----------------|
@@ -54,14 +96,6 @@ ISIC 2019 Challenge dataset (publicly available). 4 classes, 1,500 images per cl
 | Melanocytic Nevus | NV | 12,875 | 1,500 |
 | Basal Cell Carcinoma | BCC | 3,323 | 1,500 |
 | Benign Keratosis | BKL | 2,624 | 1,500 |
-
-## Tech stack
-- Python 3.11
-- TensorFlow / Keras (EfficientNetB0)
-- FastAPI
-- OpenCV (Grad-CAM overlay)
-- Docker (Hugging Face deployment)
-- pytest + GitHub Actions (CI pipeline)
 
 ## Testing & CI/CD
 
@@ -105,7 +139,6 @@ Accepts a dermoscopy image, returns prediction and Grad-CAM heatmap.
 ```
 
 ## Run locally
-
 ```bash
 git clone https://github.com/darelltan/skin-classifier-api
 cd skin-classifier-api
@@ -117,6 +150,36 @@ uvicorn main:app --reload
 
 Place `final_model.keras` in the `models/` folder before running.
 
-## Disclaimer
+## Repository Structure
+```text
+skin-classifier-api/
+├── main.py                 # FastAPI application
+├── models/
+│   └── final_model.keras
+├── utils/                  # Image preprocessing and Grad-CAM utilities
+├── tests/
+│   └── test_main.py
+├── requirements.txt
+├── Dockerfile
+└── README.md
+```
 
+## What I Learned
+Through this project I gained experience with:
+
+- Transfer learning using EfficientNetB0
+- Handling class imbalance in medical datasets
+- Interpreting CNN predictions with Grad-CAM
+- Building REST APIs with FastAPI
+- Docker deployment
+- Writing automated API tests
+
+## Future Improvements
+- Improve melanoma recall through additional training data
+- Experiment with larger EfficientNet variants
+- Add lesion segmentation before classification
+- Optimise inference speed for CPU deployment
+- Support batch predictions
+
+## Disclaimer
 This is a research prototype built for a student portfolio. It is not a medical device and must not be used for clinical diagnosis. Always consult a qualified dermatologist.
